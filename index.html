@@ -386,18 +386,8 @@ async function autoSort() {
   if (!items.length) { toast('אין פריטים'); return; }
   const btn=document.getElementById('btn-auto');
   btn.textContent='⏳...'; btn.disabled=true;
-  const prompt=`סווג כל מוצר לקטגוריה בעברית. קטגוריות: ירקות ופירות, מוצרי חלב, בשר ודגים, לחם ומאפים, שתייה, חטיפים וממתקים, דגנים וקטניות, שמנים ותבלינים, מוצרי ניקיון, כללי.\nהחזר JSON בלבד: מערך של {"index":N,"category":"שם"} לכל פריט.\nרשימה:\n${items.map((it,i)=>`${i}. ${it.text}`).join('\n')}`;
-  try {
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();
-    const raw=data.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
-    JSON.parse(raw).forEach(e=>{if(items[e.index])items[e.index].cat=e.category;});
-  } catch {
-    items.forEach(it=>{it.cat=detectCat(it.text);});
-    toast('סידור מקומי ✓');
-    btn.textContent='✨ סידור אוטו'; btn.disabled=false;
-    save(); render(true); return;
-  }
+  // Categorize locally using keyword matching (no external service required).
+  items.forEach(it=>{it.cat=detectCat(it.text);});
   save(); render(true);
   btn.textContent='✨ סידור אוטו'; btn.disabled=false;
   toast('סידור לפי קטגוריות ✓');
